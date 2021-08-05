@@ -1,10 +1,71 @@
 <template>
+  <div class="modal fade"
+       id="create-blog"
+       tabindex="-1"
+       role="dialog"
+       aria-labelledby="create-blog"
+       aria-hidden="true"
+  >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            New Blog
+          </h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="createBlog">
+            <div class="form-group">
+              <label class="pr-2" for="title">Title</label>
+              <input type="text"
+                     id="title"
+                     class="form-control"
+                     required
+                     placeholder="Title..."
+                     v-model="state.newBlog.title"
+              >
+            </div>
+            <div class="form-group">
+              <label class="pr-2" for="imgUrl">Cover Image</label>
+              <input type="text"
+                     id="imgUrl"
+                     class="form-control"
+                     required
+                     placeholder="Image Url..."
+                     v-model="state.newBlog.imgUrl"
+              >
+            </div>
+            <div class="form-group">
+              <label class="pr-2" for="body">Inspiration Messages</label>
+              <textarea type="text"
+                        id="body"
+                        class="form-control"
+                        placeholder="Blog Post..."
+                        v-model="state.newBlog.body"
+              ></textarea>
+            </div>
+            <div>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                Close
+              </button>
+              <button type="submit" class="btn btn-primary">
+                Save
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <router-link class="navbar-brand d-flex" :to="{ name: 'Home' }">
       <div class="d-flex flex-column align-items-center">
         <img
           alt="logo"
-          src="../assets/img/cw-logo.png"
+          src="https://images.unsplash.com/photo-1504691342899-4d92b50853e1?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80"
           height="45"
         />
       </div>
@@ -22,6 +83,11 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarText">
       <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <div class="pr-5 action" data-toggle="modal" data-target="#create-blog">
+            <span>Create Blog</span>
+          </div>
+        </li>
         <li class="nav-item">
           <router-link :to="{ name: 'Home' }" class="nav-link">
             Home
@@ -82,10 +148,15 @@
 import { AuthService } from '../services/AuthService'
 import { AppState } from '../AppState'
 import { computed, reactive } from 'vue'
+import Pop from '../utils/Notifier'
+import { blogsService } from '../services/BlogsService'
+import $ from 'jquery'
+
 export default {
   setup() {
     const state = reactive({
-      dropOpen: false
+      dropOpen: false,
+      newBlog: {}
     })
     return {
       state,
@@ -95,6 +166,15 @@ export default {
       },
       async logout() {
         AuthService.logout({ returnTo: window.location.origin })
+      },
+      async createBlog() {
+        try {
+          await blogsService.createBlog(state.newBlog)
+          $('#create-blog').modal('hide')
+          Pop.toast('Created!', 'success')
+        } catch (e) {
+          Pop.toast(e, 'error')
+        }
       }
     }
   }
